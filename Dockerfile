@@ -10,17 +10,11 @@ ENV PATH=/opt/conda/bin:$PATH
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
     /bin/bash ~/miniconda.sh -b -p /opt/conda && \
     rm ~/miniconda.sh && \
-    conda init bash
+    conda clean -afy
 
-# Create segclip environment with Python 3.8
-RUN /opt/conda/bin/conda install -n base conda-libmamba-solver -y && \
-    /opt/conda/bin/conda create -n segclip python=3.8 -y
-
-# Switch shell so all next commands run inside segclip
-SHELL ["conda", "run", "-n", "segclip", "/bin/bash", "-c"]
-
-# Install dependencies
-RUN conda install pytorch==1.8.0 torchvision==0.9.0 cudatoolkit=11.1 -c pytorch -c conda-forge -y && \
+# Install Python + dependencies in base environment
+RUN conda install python=3.8 -y && \
+    conda install pytorch==1.8.0 torchvision==0.9.0 cudatoolkit=11.1 -c pytorch -c conda-forge -y && \
     pip install mmcv-full==1.3.14 -f https://download.openmmlab.com/mmcv/dist/cu111/torch1.8.0/index.html && \
     pip install mmsegmentation==0.18.0 && \
     pip install webdataset==0.1.103 && \
@@ -31,5 +25,5 @@ RUN conda install pytorch==1.8.0 torchvision==0.9.0 cudatoolkit=11.1 -c pytorch 
     pip install Pillow==8.2.0 && \
     conda clean -afy
 
-# Default command: open bash in segclip env
-ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "segclip", "bash"]
+# Default to bash
+CMD ["/bin/bash"]
