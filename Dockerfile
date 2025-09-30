@@ -13,7 +13,8 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
     conda init bash
 
 # Create segclip environment with Python 3.8
-RUN conda create -n segclip python=3.8 -y && conda clean -afy
+RUN /opt/conda/bin/conda install -n base conda-libmamba-solver -y && \
+    /opt/conda/bin/conda create -n segclip python=3.8 -y
 
 # Switch shell so all next commands run inside segclip
 SHELL ["conda", "run", "-n", "segclip", "/bin/bash", "-c"]
