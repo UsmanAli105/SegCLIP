@@ -9,10 +9,13 @@ RUN apt-get update && apt-get install -y \
 ENV PATH=/opt/conda/bin:$PATH
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
     /bin/bash ~/miniconda.sh -b -p /opt/conda && \
-    rm ~/miniconda.sh
+    rm ~/miniconda.sh && \
+    conda init bash
 
-# Create environment
-RUN conda create -n segclip python=3.8 -y
+# Create segclip environment with Python 3.8
+RUN conda create -n segclip python=3.8 -y && conda clean -afy
+
+# Switch shell so all next commands run inside segclip
 SHELL ["conda", "run", "-n", "segclip", "/bin/bash", "-c"]
 
 # Install dependencies
@@ -24,7 +27,8 @@ RUN conda install pytorch==1.8.0 torchvision==0.9.0 cudatoolkit=11.1 -c pytorch 
     pip install opencv-python==4.4.0.46 termcolor==1.1.0 diffdist einops omegaconf && \
     pip install nltk ftfy regex tqdm && \
     pip install prefetch_generator && \
-    pip install Pillow==8.2.0
+    pip install Pillow==8.2.0 && \
+    conda clean -afy
 
-# Default to bash with conda env
+# Default command: open bash in segclip env
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "segclip", "bash"]
