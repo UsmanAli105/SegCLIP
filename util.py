@@ -60,34 +60,42 @@ def parallel_apply(fct, model, inputs, device_ids):
     return outputs
 
 logger_initialized = {}
+
 def get_logger(filename=None):
     if "seg" in logger_initialized:
         return logger_initialized["seg"]
     else:
-        assert filename is not None
+        # fallback if no filename given
+        if filename is None:
+            filename = "segclip_default.log"
+
         try:
-            from mmcv.utils import get_logger
-            from termcolor import colored
+            from mmcv.utils import get_logger as mmcv_get_logger
             fmt = '[%(asctime)s %(name)s] (%(filename)s %(lineno)d): %(levelname)s %(message)s'
             color_fmt = colored('[%(asctime)s %(name)s]', 'green') \
-                        + colored('(%(filename)s %(lineno)d)', 'yellow') + ': %(levelname)s %(message)s'
-            logger = get_logger("seg", log_file=filename, log_level=logging.INFO, file_mode='a')
+                        + colored('(%(filename)s %(lineno)d)', 'yellow') \
+                        + ': %(levelname)s %(message)s'
+
+            logger = mmcv_get_logger("seg", log_file=filename, log_level=logging.INFO, file_mode='a')
+
             for handler in logger.handlers:
                 if isinstance(handler, logging.StreamHandler):
                     handler.setFormatter(logging.Formatter(fmt=color_fmt, datefmt='%Y-%m-%d %H:%M:%S'))
-
-                if isinstance(handler, logging.FileHandler):
+                elif isinstance(handler, logging.FileHandler):
                     handler.setFormatter(logging.Formatter(fmt=fmt, datefmt='%Y-%m-%d %H:%M:%S'))
+
         except Exception as e:
             logger = logging.getLogger("seg")
             logger.setLevel(logging.DEBUG)
-            logging.basicConfig(format='%(asctime)s - %(levelname)s -   %(message)s',
-                                datefmt='%m/%d/%Y %H:%M:%S',
-                                level=logging.INFO)
-            if filename is not None:
-                handler = logging.FileHandler(filename)
-                handler.setLevel(logging.DEBUG)
-                handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s: %(message)s'))
-                logging.getLogger().addHandler(handler)
+            logging.basicConfig(
+                format='%(asctime)s - %(levelname)s -   %(message)s',
+                datefmt='%m/%d/%Y %H:%M:%S',
+                level=logging.INFO
+            )
+            handler = logging.FileHandler(filename)
+            handler.setLevel(logging.DEBUG)
+            handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s: %(message)s'))
+            logger.addHandler(handler)
+
         logger_initialized["seg"] = logger
-    return logger
+        return logger
